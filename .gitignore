@@ -1,0 +1,26 @@
+# Django
+*.log
+*.pot
+*.pyc
+__pycache__/
+db.sqlite3  # Ignore SQLite database (if you're using it for dev)
+.env        # Don't push sensitive data, e.g., secret keys, DB creds
+
+# Virtual Environment
+venv/
+.venv/
+env/
+.env/
+
+# Static files (if you don't want them in Git, depends on your setup)
+static/
+
+# Media files (uploaded user files)
+media/
+
+# IDE files (VSCode, PyCharm, etc.)
+.vscode/
+.idea/
+
+# Django migrations (if you want to keep migrations out of version control)
+migrations/
