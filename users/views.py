@@ -1,7 +1,7 @@
 
 import cloudinary
 import cloudinary.uploader
-from .serializers import UserRegisterSerializer, VerifyOTPSerializer, UserProfileSerializer
+from .serializers import *
 from .models import OTP
 from django.core.mail import send_mail
 from django.conf import settings
@@ -10,7 +10,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from .models import User
+from .models import *
 from datetime import timedelta
 from django.utils import timezone
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -358,3 +358,42 @@ class GoogleAuthView(APIView):
                 {'message': 'Invalid Google token', 'details': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
+        
+
+
+class ForgotPasswordView(APIView):
+    def post(self, request):
+        serializer = ForgotPasswordSerializer(data=request.data)
+        if serializer.is_valid():
+            email = serializer.validated_data['email']
+            try:
+                user = User.objects.get(email=email)
+                token = PasswordResetToken.objects.create(user=user)
+                reset_url = f"http://localhost:5173/reset-password?token={token.token}"
+                send_mail(
+                    subject="HomiGo Password Reset",
+                    message=f"Click the link to reset your password: {reset_url}\nThis link will expire in 30 minutes.",
+                    from_email="HomiGo <your-email@gmail.com>",
+                    recipient_list=[email],
+                    fail_silently=False,
+                )
+            except User.DoesNotExist:
+                pass
+            return Response({"message": "If an account exists, a reset link has been sent to your email."}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class ResetPasswordView(APIView):
+    def post(self, request):
+        serializer = ResetPasswordSerializer(data=request.data)
+        if serializer.is_valid():
+            token_value = serializer.validated_data['token']
+            new_password = serializer.validated_data['new_password']
+            token = PasswordResetToken.objects.get(token=token_value)
+            user = token.user
+            # Update password using set_password (hashes automatically)
+            user.set_password(new_password)
+            user.save()
+            token.delete()
+            print(f"Password updated for {user.email}: {user.password}")  # Debug log
+            return Response({"message": "Password reset successful"}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

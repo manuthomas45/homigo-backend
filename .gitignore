@@ -11,6 +11,7 @@ venv/
 .venv/
 env/
 .env/
+.env
 
 # Static files (if you don't want them in Git, depends on your setup)
 static/
