@@ -17,12 +17,15 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path,include
 from users.views import RefreshTokenView
+ 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('users/',include('users.urls')),
     # path('adminpanel/',include('admindashboard.urls')),
     path('refresh-token/', RefreshTokenView.as_view(), name='refresh-token'),
+    path('technician/', include('technicians.urls')),
+
 
     
 ]

@@ -1,12 +1,15 @@
 from rest_framework import serializers
-from .models import *
-from rest_framework import serializers
+from .models import User, PasswordResetToken
 
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'firstName', 'lastName', 'email', 'phoneNumber', 'role']
 
 class UserRegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['firstName', 'lastName', 'email', 'password', 'phoneNumber']  # Removed profilePicture
+        fields = ['firstName', 'lastName', 'email', 'password', 'phoneNumber']
         extra_kwargs = {
             'password': {'write_only': True},
         }
@@ -24,14 +27,11 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['firstName', 'lastName', 'phoneNumber']  # Only fields that can be updated
+        fields = ['firstName', 'lastName', 'phoneNumber']
 
 class VerifyOTPSerializer(serializers.Serializer):
     email = serializers.EmailField()
     otp = serializers.CharField(max_length=6)
-
-
-
 
 class ForgotPasswordSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True)

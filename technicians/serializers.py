@@ -1,32 +1,42 @@
 from rest_framework import serializers
-from .models import Technician, TechnicianDetails
-from django.contrib.auth.hashers import make_password
+from .models import ServiceCategory, TechnicianDetails
+from users.models import User
+
+class ServiceCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ServiceCategory
+        fields = ['id', 'name', 'service_image']
 
 class TechnicianDetailsSerializer(serializers.ModelSerializer):
+    category = serializers.PrimaryKeyRelatedField(queryset=ServiceCategory.objects.all())
+    aadhaar_card_picture = serializers.ImageField()
+    certificate_picture = serializers.ImageField()
+
     class Meta:
         model = TechnicianDetails
-        fields = ['aadhaar_number', 'aadhaar_card_picture', 'certificate_picture', 'city', 'longitude', 'latitude']
+        fields = [
+            'category',
+            'aadhaar_number',
+            'aadhaar_card_picture',
+            'certificate_picture',
+            'city',
+        ]
 
-class TechnicianSerializer(serializers.ModelSerializer):
-    details = TechnicianDetailsSerializer()
+    def validate_aadhaar_number(self, value):
+        if not value.isdigit() or len(value) != 12:
+            raise serializers.ValidationError("Aadhaar number must be a 12-digit number")
+        if TechnicianDetails.objects.filter(aadhaar_number=value).exists():
+            raise serializers.ValidationError("Aadhaar number already exists")
+        return value
 
-    class Meta:
-        model = Technician
-        fields = ['id', 'first_name', 'last_name', 'email', 'password', 'phone_number', 'category', 'details']
-        extra_kwargs = {'password': {'write_only': True}}
+    def validate_category(self, value):
+        if not ServiceCategory.objects.filter(id=value.id).exists():
+            raise serializers.ValidationError("Invalid category ID")
+        return value
 
     def create(self, validated_data):
-        details_data = validated_data.pop('details')
-        validated_data['password'] = make_password(validated_data['password'])  # Hash password
-        technician = Technician.objects.create(**validated_data)
-        TechnicianDetails.objects.create(technician=technician, **details_data)
-        return technician
-
-class TechnicianLoginSerializer(serializers.Serializer):
-    email = serializers.EmailField()
-    password = serializers.CharField(write_only=True)
-
-class TechnicianResponseSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Technician
-        fields = ['id', 'first_name', 'last_name', 'email', 'phone_number', 'category']
+        user = self.context['request'].user
+        user.role = 'technician'
+        user.save()
+        technician_details = TechnicianDetails.objects.create(user=user, **validated_data)
+        return technician_details

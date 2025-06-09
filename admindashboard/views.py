@@ -11,7 +11,7 @@ class CustomerListView(APIView):
     def get(self, request):
         try:
             # Filter customers where role='user' AND isVerified=True
-            customers = User.objects.filter(role='user', isVerified=True)
+            customers = User.objects.filter(role='user')
             # Use the serializer to convert the queryset to JSON
             serializer = UserSerializer(customers, many=True)
             return Response({"customers": serializer.data}, status=status.HTTP_200_OK)

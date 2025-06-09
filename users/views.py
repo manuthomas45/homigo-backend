@@ -1,4 +1,3 @@
-
 import cloudinary
 import cloudinary.uploader
 from .serializers import *
@@ -80,7 +79,7 @@ class VerifyOTPView(APIView):
 
             # Mark user as verified
             user = User.objects.get(email=email)
-            user.isVerified = True
+            # user.isVerified = True
             user.status = 'active'
             user.save()
 
@@ -327,6 +326,7 @@ class GoogleAuthView(APIView):
                     'lastName': last_name,    # Use lastName as per your model
                     'role': 'user',
                     'phoneNumber': '',        # Required field; set to empty string
+                    'status':'active',
                 }
             )
 
