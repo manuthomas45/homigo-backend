@@ -1,10 +1,19 @@
 from rest_framework import serializers
 from .models import User, PasswordResetToken
+import cloudinary
+import re
 
 class UserSerializer(serializers.ModelSerializer):
+    profilePicture = serializers.SerializerMethodField()
+
     class Meta:
         model = User
-        fields = ['id', 'firstName', 'lastName', 'email', 'phoneNumber', 'role']
+        fields = ['id', 'firstName', 'lastName', 'email', 'phoneNumber', 'role', 'profilePicture']
+
+    def get_profilePicture(self, obj):
+        if obj.profilePicture:
+            return cloudinary.CloudinaryImage(str(obj.profilePicture)).build_url()
+        return None
 
 class UserRegisterSerializer(serializers.ModelSerializer):
     class Meta:
@@ -61,4 +70,29 @@ class ResetPasswordSerializer(serializers.Serializer):
                 raise serializers.ValidationError("Token has expired")
         except PasswordResetToken.DoesNotExist:
             raise serializers.ValidationError("Invalid token")
+        return value
+    
+class UserUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'firstName', 'lastName', 'email', 'phoneNumber', 'role', 'profilePicture']
+        read_only_fields = ['id', 'email', 'role']
+
+    def validate_firstName(self, value):
+        if not value or len(value.strip()) < 2:
+            raise serializers.ValidationError("First name must be at least 2 characters long")
+        if not re.match(r'^[A-Za-z]+$', value):
+            raise serializers.ValidationError("First name must contain only letters")
+        return value
+
+    def validate_lastName(self, value):
+        if not value or len(value.strip()) < 2:
+            raise serializers.ValidationError("Last name must be at least 2 characters long")
+        if not re.match(r'^[A-Za-z]+$', value):
+            raise serializers.ValidationError("Last name must contain only letters")
+        return value
+
+    def validate_phoneNumber(self, value):
+        if not value or not re.match(r'^\d{10}$', value):
+            raise serializers.ValidationError("Phone number must be exactly 10 digits")
         return value

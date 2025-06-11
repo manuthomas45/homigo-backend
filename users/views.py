@@ -17,6 +17,9 @@ from django.contrib.auth import authenticate
 from google.oauth2 import id_token
 from google.auth.transport.requests import Request as GoogleRequest
 from django.contrib.auth import get_user_model
+from django.contrib.auth.hashers import check_password
+import re
+
 
 
 
@@ -130,7 +133,7 @@ class ResendOTPView(APIView):
         return Response({'message': 'New OTP sent to email.'}, status=status.HTTP_200_OK)
 
 class LoginView(APIView):
-    permission_classes = [AllowAny]  # Allow unauthenticated users to login
+    permission_classes = [AllowAny]
 
     def post(self, request):
         email = request.data.get('email')
@@ -139,10 +142,16 @@ class LoginView(APIView):
         if not email or not password:
             return Response({'message': 'Email and password are required'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Authenticate user
+        # Check if email exists
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response({'message': 'Email is incorrect'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # Authenticate user (check password)
         user = authenticate(request, email=email, password=password)
         if not user:
-            return Response({'message': 'Invalid email or password'}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'message': 'Password is incorrect'}, status=status.HTTP_401_UNAUTHORIZED)
 
         if not user.isVerified:
             return Response({'message': 'Please verify your email before logging in'}, status=status.HTTP_403_FORBIDDEN)
@@ -173,6 +182,7 @@ class LoginView(APIView):
         )
 
         return response
+
 
 class RefreshTokenView(APIView):
     permission_classes = [AllowAny]  # Allow unauthenticated users to refresh token (uses cookie)
@@ -327,6 +337,7 @@ class GoogleAuthView(APIView):
                     'role': 'user',
                     'phoneNumber': '',        # Required field; set to empty string
                     'status':'active',
+                    'isVerified':True,
                 }
             )
 
@@ -397,3 +408,61 @@ class ResetPasswordView(APIView):
             print(f"Password updated for {user.email}: {user.password}")  # Debug log
             return Response({"message": "Password reset successful"}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class HasPasswordView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        has_password = user.has_usable_password()
+        return Response({'hasPassword': has_password}, status=status.HTTP_200_OK)
+
+class ChangePasswordView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        data = request.data
+
+        current_password = data.get('currentPassword')
+        new_password = data.get('newPassword')
+        confirm_password = data.get('confirmPassword')
+
+        # If user has a password, verify the current password
+        if user.has_usable_password():
+            if not current_password:
+                return Response(
+                    {'error': 'Current password is required'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            if not check_password(current_password, user.password):
+                return Response(
+                    {'error': 'Current password is incorrect'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+        # Validate new password
+        password_regex = r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$'
+        if not new_password or not confirm_password:
+            return Response(
+                {'error': 'New password and confirm password are required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if not re.match(password_regex, new_password):
+            return Response(
+                {'error': 'Password must be at least 8 characters long and include uppercase, lowercase, digit, and special character'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if new_password != confirm_password:
+            return Response(
+                {'error': 'New password and confirm password do not match'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Update password
+        user.set_password(new_password)
+        user.save()
+
+        return Response({'message': 'Password updated successfully'}, status=status.HTTP_200_OK)
