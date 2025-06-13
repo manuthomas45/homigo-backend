@@ -13,6 +13,9 @@ import cloudinary
 from pathlib import Path
 from decouple import config
 from datetime import timedelta
+import os
+import logging.handlers
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -47,6 +50,7 @@ INSTALLED_APPS = [
     'admindashboard',
     'cloudinary_storage',      # Integration with Django's storage system
     'cloudinary',              # Cloudinary core library
+    'services',
 
 ]
 
@@ -197,3 +201,39 @@ AUTHENTICATION_BACKENDS = [
     'users.auth_backend.EmailBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
+
+
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+
+    'formatters': {
+        'verbose': {
+            'format': '[{levelname}] {asctime} {name} - {message}',
+            'style': '{',
+        },
+    },
+
+    'handlers': {
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'homigo.log'),
+            'when': 'D',          # D = Days
+            'interval': 3,        # Rotate every 3 days
+            'backupCount': 5,     # Keep last 2 files, older files will be deleted
+            'formatter': 'verbose',
+        },
+    },
+
+    'loggers': {
+        'homigo': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+    },
+}

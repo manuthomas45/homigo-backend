@@ -8,6 +8,8 @@ from technicians.models import TechnicianDetails
 from technicians.serializers import TechnicianDetailsSerializer
 from admindashboard.permissions import IsAdminRole
 from django.db.models import Q
+from technicians.models import ServiceCategory
+from services.serializers import ServiceCategorySerializer
 
 class UserListView(APIView):
     permission_classes = [IsAuthenticated, IsAdminRole]
@@ -169,3 +171,99 @@ class TechnicianDetailView(APIView):
                 {"success": False, "error": "An unexpected error occurred", "details": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+        
+
+
+class ServiceCategoryListView(APIView):
+    permission_classes = [IsAuthenticated, IsAdminRole]
+
+    def get(self, request):
+
+        try:
+            # Fetch all service categories
+            service_categories = ServiceCategory.objects.all()
+            serializer = ServiceCategorySerializer(service_categories, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    def post(self, request):
+        
+
+        try:
+            # Validate and save the new service category
+            serializer = ServiceCategorySerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        
+# class ServiceCategoryDetailView(APIView):
+#     permission_classes = [IsAuthenticated, IsAdminRole]
+
+#     def get_object(self, pk):
+#         try:
+#             return ServiceCategory.objects.get(pk=pk)
+#         except ServiceCategory.DoesNotExist:
+#             return None
+
+#     def get(self, request, pk):
+#         if request.user.role != 'admin':
+#             return Response(
+#                 {"error": "Unauthorized: User is not an admin"},
+#                 status=status.HTTP_403_FORBIDDEN
+#             )
+
+#         service_category = self.get_object(pk)
+#         if not service_category:
+#             return Response(
+#                 {"error": "Service category not found"},
+#                 status=status.HTTP_404_NOT_FOUND
+#             )
+
+#         serializer = ServiceCategorySerializer(service_category)
+#         return Response(serializer.data, status=status.HTTP_200_OK)
+
+#     def put(self, request, pk):
+#         if request.user.role != 'admin':
+#             return Response(
+#                 {"error": "Unauthorized: User is not an admin"},
+#                 status=status.HTTP_403_FORBIDDEN
+#             )
+
+#         service_category = self.get_object(pk)
+#         if not service_category:
+#             return Response(
+#                 {"error": "Service category not found"},
+#                 status=status.HTTP_404_NOT_FOUND
+#             )
+
+#         serializer = ServiceCategorySerializer(service_category, data=request.data, partial=True)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response(serializer.data, status=status.HTTP_200_OK)
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+#     def delete(self, request, pk):
+#         if request.user.role != 'admin':
+#             return Response(
+#                 {"error": "Unauthorized: User is not an admin"},
+#                 status=status.HTTP_403_FORBIDDEN
+#             )
+
+#         service_category = self.get_object(pk)
+#         if not service_category:
+#             return Response(
+#                 {"error": "Service category not found"},
+#                 status=status.HTTP_404_NOT_FOUND
+#             )
+
+#         service_category.delete()
+#         return Response(status=status.HTTP_204_NO_CONTENT)

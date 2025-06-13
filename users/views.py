@@ -19,17 +19,18 @@ from google.auth.transport.requests import Request as GoogleRequest
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import check_password
 import re
-
+import logging
 
 
 
 User = get_user_model()
-
+logger=logging.getLogger('homigo')
 class RegisterView(APIView):
     permission_classes = [AllowAny]  # Allow unauthenticated users to register
 
     def post(self, request):
-        print("Request data:", request.data)
+        logger.info("Received registration request.")
+        logger.debug(f"Request data: {request.data}")
         serializer = UserRegisterSerializer(data=request.data)
         print("Serializer:", serializer)
         if serializer.is_valid():
@@ -58,7 +59,7 @@ class RegisterView(APIView):
                 )
 
             return Response({'message': 'User registered. OTP sent to email.'}, status=status.HTTP_201_CREATED)
-        print("Serializer errors:", serializer.errors)
+        logger.warning(f"Registration failed: {serializer.errors}")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class VerifyOTPView(APIView):
@@ -82,7 +83,7 @@ class VerifyOTPView(APIView):
 
             # Mark user as verified
             user = User.objects.get(email=email)
-            # user.isVerified = True
+            user.isVerified = True
             user.status = 'active'
             user.save()
 
@@ -153,8 +154,8 @@ class LoginView(APIView):
         if not user:
             return Response({'message': 'Password is incorrect'}, status=status.HTTP_401_UNAUTHORIZED)
 
-        if not user.isVerified:
-            return Response({'message': 'Please verify your email before logging in'}, status=status.HTTP_403_FORBIDDEN)
+        # if not user.isVerified:
+        #     return Response({'message': 'Please verify your email before logging in'}, status=status.HTTP_403_FORBIDDEN)
 
         # Generate JWT tokens
         refresh = RefreshToken.for_user(user)
@@ -285,7 +286,7 @@ class UpdateProfilePictureView(APIView):
         }, status=status.HTTP_200_OK)
 
 class LogoutView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def post(self, request):
         refresh_token = request.COOKIES.get('refresh_token')
