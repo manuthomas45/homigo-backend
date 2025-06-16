@@ -204,7 +204,6 @@ AUTHENTICATION_BACKENDS = [
 
 
 
-BASE_DIR = Path(__file__).resolve().parent.parent
 
 LOGGING = {
     'version': 1,
@@ -237,3 +236,7 @@ LOGGING = {
         },
     },
 }
+
+CELERY_BROKER_URL = 'redis://localhost:6379/0'  # Ensure Redis is running
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'

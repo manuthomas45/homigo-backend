@@ -20,11 +20,14 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import check_password
 import re
 import logging
-
+from .tasks import send_otp_email,send_password_reset_email
+from celery import shared_task
+from backend.redis_client import redis_instance
 
 
 User = get_user_model()
 logger=logging.getLogger('homigo')
+
 class RegisterView(APIView):
     permission_classes = [AllowAny]  # Allow unauthenticated users to register
 
@@ -32,27 +35,21 @@ class RegisterView(APIView):
         logger.info("Received registration request.")
         logger.debug(f"Request data: {request.data}")
         serializer = UserRegisterSerializer(data=request.data)
-        print("Serializer:", serializer)
+        logger.info(f"serializer:{serializer}")
         if serializer.is_valid():
             user = serializer.save()
 
             # Generate and store OTP
             otp = str(random.randint(100000, 999999))
-            OTP.objects.create(email=user.email, otp=otp)
-            print("Generated OTP:", otp)
+            redis_instance.setex(f"otp:{user.email}", 120, otp)
+            logger.debug(f"generated:{otp}")
 
             # Send OTP email
             try:
-                send_mail(
-                    'Your HomiGo OTP',
-                    f'Your OTP for registration is: {otp}',
-                    settings.EMAIL_HOST_USER,
-                    [user.email],
-                    fail_silently=False,
-                )
-                print("Email sent successfully to:", user.email)
+                send_otp_email.delay(user.email, otp)  # Asynchronous email sending
+                logger.debug(f"Email task queued for: {user.email}")
             except Exception as e:
-                print("Failed to send email:", str(e))
+                logger.warning(f"Failed to send email :{str(e)}")
                 return Response(
                     {'message': 'User registered, but failed to send OTP email. Please try again.'},
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -72,25 +69,22 @@ class VerifyOTPView(APIView):
             otp = serializer.validated_data['otp']
 
             # Check if OTP exists and matches
-            otp_record = OTP.objects.filter(email=email, otp=otp).first()
-            if not otp_record:
-                return Response({'message': 'Invalid OTP'}, status=status.HTTP_400_BAD_REQUEST)
+            stored_otp = redis_instance.get(f"otp:{email}")
+            if not stored_otp:
+                return Response({'message': 'OTP expired'}, status=400)
 
-            # Check if OTP has expired (2 minutes = 120 seconds)
-            time_limit = timedelta(minutes=2)
-            if timezone.now() - otp_record.created_at > time_limit:
-                return Response({'message': 'OTP has expired'}, status=status.HTTP_400_BAD_REQUEST)
+            if stored_otp != otp:
+                return Response({'message': 'Invalid OTP'}, status=400)
 
-            # Mark user as verified
+            # OTP is valid — update user
             user = User.objects.get(email=email)
             user.isVerified = True
             user.status = 'active'
             user.save()
 
-            # Delete the OTP after verification
-            otp_record.delete()
+            redis_instance.delete(f"otp:{email}")  # Delete OTP from Redis
+            return Response({'message': 'OTP verified successfully'}, status=200)
 
-            return Response({'message': 'OTP verified successfully'}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class ResendOTPView(APIView):
@@ -105,25 +99,16 @@ class ResendOTPView(APIView):
         user = User.objects.filter(email=email).first()
         if not user:
             return Response({'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
-
-        # Delete any existing OTP for this email
-        OTP.objects.filter(email=email).delete()
+        
 
         # Generate and store new OTP
         otp = str(random.randint(100000, 999999))
-        OTP.objects.create(email=email, otp=otp)
-        print("Generated new OTP:", otp)
+        redis_instance.setex(f"otp:{email}", 120, otp)
 
         # Send new OTP email
         try:
-            send_mail(
-                'Your HomiGo OTP',
-                f'Your new OTP for registration is: {otp}',
-                settings.EMAIL_HOST_USER,
-                [user.email],
-                fail_silently=False,
-            )
-            print("New OTP email sent successfully to:", email)
+            send_otp_email.delay(user.email, otp)  # Asynchronous email sending
+            logger.debug(f"Email task queued for: {user.email}")
         except Exception as e:
             print("Failed to send new ОTP email:", str(e))
             return Response(
@@ -154,8 +139,8 @@ class LoginView(APIView):
         if not user:
             return Response({'message': 'Password is incorrect'}, status=status.HTTP_401_UNAUTHORIZED)
 
-        # if not user.isVerified:
-        #     return Response({'message': 'Please verify your email before logging in'}, status=status.HTTP_403_FORBIDDEN)
+        if not user.isVerified:
+            return Response({'message': 'Please verify your email before logging in'}, status=status.HTTP_403_FORBIDDEN)
 
         # Generate JWT tokens
         refresh = RefreshToken.for_user(user)
@@ -372,7 +357,6 @@ class GoogleAuthView(APIView):
             )
         
 
-
 class ForgotPasswordView(APIView):
     def post(self, request):
         serializer = ForgotPasswordSerializer(data=request.data)
@@ -381,16 +365,12 @@ class ForgotPasswordView(APIView):
             try:
                 user = User.objects.get(email=email)
                 token = PasswordResetToken.objects.create(user=user)
-                reset_url = f"http://localhost:5173/reset-password?token={token.token}"
-                send_mail(
-                    subject="HomiGo Password Reset",
-                    message=f"Click the link to reset your password: {reset_url}\nThis link will expire in 30 minutes.",
-                    from_email="HomiGo <your-email@gmail.com>",
-                    recipient_list=[email],
-                    fail_silently=False,
-                )
+
+                # Call celery task instead of send_mail directly
+                send_password_reset_email.delay(email, str(token.token))
+                logger.info(f"mail send to {user.email}")
             except User.DoesNotExist:
-                pass
+                logger.error(f"[EMAIL FAILED] to {email}: {str(e)}")
             return Response({"message": "If an account exists, a reset link has been sent to your email."}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -420,6 +400,7 @@ class HasPasswordView(APIView):
 
 class ChangePasswordView(APIView):
     permission_classes = [IsAuthenticated]
+
 
     def post(self, request):
         user = request.user

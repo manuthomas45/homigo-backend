@@ -5,6 +5,8 @@ from rest_framework.permissions import IsAuthenticated,AllowAny
 from .models import ServiceCategory, TechnicianDetails
 from .serializers import ServiceCategorySerializer, TechnicianDetailsSerializerc,TechnicianDetailsSerializer
 from users.serializers import *
+import logging
+logger=logging.getLogger('homigo')
 
 class ServiceCategoryListView(generics.ListAPIView):
     

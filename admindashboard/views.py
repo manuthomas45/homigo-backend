@@ -10,6 +10,8 @@ from admindashboard.permissions import IsAdminRole
 from django.db.models import Q
 from technicians.models import ServiceCategory
 from services.serializers import ServiceCategorySerializer
+import logging
+logger=logging.getLogger('homigo')
 
 class UserListView(APIView):
     permission_classes = [IsAuthenticated, IsAdminRole]
