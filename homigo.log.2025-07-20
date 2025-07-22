@@ -1,0 +1,6 @@
+[ERROR] 2025-07-20 16:54:14,816 homigo - Serializer validation errors: {'non_field_errors': [ErrorDetail(string='The fields category, name must make a unique set.', code='unique')]}
+[ERROR] 2025-07-20 17:24:05,512 homigo - Serializer validation errors: {'non_field_errors': [ErrorDetail(string='The fields category, name must make a unique set.', code='unique')]}
+[ERROR] 2025-07-20 17:24:08,711 homigo - Serializer validation errors: {'non_field_errors': [ErrorDetail(string='The fields category, name must make a unique set.', code='unique')]}
+[ERROR] 2025-07-20 20:54:40,197 homigo - Error creating service type: 'NoneType' object has no attribute 'id'
+[ERROR] 2025-07-20 20:55:03,844 homigo - Error creating service type: 'NoneType' object has no attribute 'id'
+[ERROR] 2025-07-20 21:02:00,591 homigo - Error creating service type: 'NoneType' object has no attribute 'id'

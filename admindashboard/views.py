@@ -11,6 +11,10 @@ from django.db.models import Q
 from technicians.models import ServiceCategory
 from services.serializers import ServiceCategorySerializer
 import logging
+from django.shortcuts import get_object_or_404
+from rest_framework.parsers import MultiPartParser,FormParser
+from django.db import IntegrityError  
+
 logger=logging.getLogger('homigo')
 
 class UserListView(APIView):
@@ -177,95 +181,96 @@ class TechnicianDetailView(APIView):
 
 
 class ServiceCategoryListView(APIView):
-    permission_classes = [IsAuthenticated, IsAdminRole]
+    # permission_classes = [IsAuthenticated, IsAdminRole]
+    parser_classes = [MultiPartParser, FormParser]
 
     def get(self, request):
-
         try:
-            # Fetch all service categories
             service_categories = ServiceCategory.objects.all()
             serializer = ServiceCategorySerializer(service_categories, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
+            logger.error(f"Error fetching service categories: {str(e)}")
             return Response(
-                {"error": str(e)},
+                {"error": "Failed to fetch service categories"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-    def post(self, request):
-        
 
+    def post(self, request):
         try:
-            # Validate and save the new service category
+            # The serializer will automatically handle the file from request.FILES
             serializer = ServiceCategorySerializer(data=request.data)
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
+            
+            logger.error(f"Serializer validation errors: {serializer.errors}")
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # except IntegrityError as e:
+        #     logger.error(f"Error creating service category: {str(e)}")
+        #     return Response(
+        #         {"error": {"name": ["Name already exists"]}},
+        #         status=status.HTTP_400_BAD_REQUEST
+        #     )
         except Exception as e:
+            logger.error(f"Error creating service category: {str(e)}")
             return Response(
-                {"error": str(e)},
+                {"error": "Failed to create service category"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+
+class ServiceCategoryDetailView(APIView):
+    permission_classes = [IsAuthenticated, IsAdminRole]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def delete(self, request, pk):
+        try:
+            logger.info(f"{pk}")
+            service_category = ServiceCategory.objects.get(pk=pk)
+            service_category.delete()
+            return Response(
+                {"message": "Service category deleted successfully."}, 
+                status=status.HTTP_204_NO_CONTENT
+            )
+        except ServiceCategory.DoesNotExist:
+            return Response(
+                {"error": "Service category not found."}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            logger.error(f"Error deleting service category: {str(e)}")
+            return Response(
+                {"error": "Failed to delete service category"}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    def put(self, request, pk):
+        try:
+            category = get_object_or_404(ServiceCategory, pk=pk)
+            
+            # The serializer will automatically handle the file from request.FILES
+            serializer = ServiceCategorySerializer(
+                category, 
+                data=request.data, 
+                partial=True
+            )
+
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+
+            logger.error(f"Serializer validation errors: {serializer.errors}")
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
-# class ServiceCategoryDetailView(APIView):
-#     permission_classes = [IsAuthenticated, IsAdminRole]
-
-#     def get_object(self, pk):
-#         try:
-#             return ServiceCategory.objects.get(pk=pk)
-#         except ServiceCategory.DoesNotExist:
-#             return None
-
-#     def get(self, request, pk):
-#         if request.user.role != 'admin':
-#             return Response(
-#                 {"error": "Unauthorized: User is not an admin"},
-#                 status=status.HTTP_403_FORBIDDEN
-#             )
-
-#         service_category = self.get_object(pk)
-#         if not service_category:
-#             return Response(
-#                 {"error": "Service category not found"},
-#                 status=status.HTTP_404_NOT_FOUND
-#             )
-
-#         serializer = ServiceCategorySerializer(service_category)
-#         return Response(serializer.data, status=status.HTTP_200_OK)
-
-#     def put(self, request, pk):
-#         if request.user.role != 'admin':
-#             return Response(
-#                 {"error": "Unauthorized: User is not an admin"},
-#                 status=status.HTTP_403_FORBIDDEN
-#             )
-
-#         service_category = self.get_object(pk)
-#         if not service_category:
-#             return Response(
-#                 {"error": "Service category not found"},
-#                 status=status.HTTP_404_NOT_FOUND
-#             )
-
-#         serializer = ServiceCategorySerializer(service_category, data=request.data, partial=True)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(serializer.data, status=status.HTTP_200_OK)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-#     def delete(self, request, pk):
-#         if request.user.role != 'admin':
-#             return Response(
-#                 {"error": "Unauthorized: User is not an admin"},
-#                 status=status.HTTP_403_FORBIDDEN
-#             )
-
-#         service_category = self.get_object(pk)
-#         if not service_category:
-#             return Response(
-#                 {"error": "Service category not found"},
-#                 status=status.HTTP_404_NOT_FOUND
-#             )
-
-#         service_category.delete()
-#         return Response(status=status.HTTP_204_NO_CONTENT)
+        except ServiceCategory.DoesNotExist:
+            return Response(
+                {"error": "Service category not found."}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            logger.error(f"Error updating service category: {str(e)}")
+            return Response(
+                {"error": "Failed to update service category"}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

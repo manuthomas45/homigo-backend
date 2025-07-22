@@ -1,0 +1,22 @@
+[ERROR] 2025-07-16 09:39:11,454 homigo - Error deleting service category: relation "services_servicetype" does not exist
+LINE 1: DELETE FROM "services_servicetype" WHERE "services_servicety...
+                    ^
+
+[ERROR] 2025-07-16 09:39:15,399 homigo - Error deleting service category: relation "services_servicetype" does not exist
+LINE 1: DELETE FROM "services_servicetype" WHERE "services_servicety...
+                    ^
+
+[ERROR] 2025-07-16 09:40:42,330 homigo - Error deleting service category: relation "services_servicetype" does not exist
+LINE 1: DELETE FROM "services_servicetype" WHERE "services_servicety...
+                    ^
+
+[ERROR] 2025-07-16 10:17:58,731 homigo - Error deleting service category: relation "services_servicetype" does not exist
+LINE 1: DELETE FROM "services_servicetype" WHERE "services_servicety...
+                    ^
+
+[INFO] 2025-07-16 10:19:03,674 homigo - 24
+[ERROR] 2025-07-16 10:19:03,688 homigo - Error deleting service category: relation "services_servicetype" does not exist
+LINE 1: DELETE FROM "services_servicetype" WHERE "services_servicety...
+                    ^
+
+[INFO] 2025-07-16 10:27:26,887 homigo - 24

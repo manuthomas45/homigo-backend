@@ -6,6 +6,7 @@ class ServiceCategory(models.Model):
     name = models.CharField(max_length=100, unique=True)
     service_image = CloudinaryField('image', blank=True, null=True)
 
+
     def __str__(self):
         return self.name
 

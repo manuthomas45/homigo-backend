@@ -18,10 +18,12 @@ from django.contrib import admin
 from django.urls import path, include
 from users.views import RefreshTokenView
 
+
 urlpatterns = [
     # path('admin/', admin.site.urls),
     path('refresh-token/', RefreshTokenView.as_view(), name='refresh-token'),
     path('api/v1/users/', include('users.urls')),
     path('api/v1/adminpanel/', include('admindashboard.urls')),  # Changed to adminpanel
     path('api/v1/technician/', include('technicians.urls')),
+    path('api/v1/services/',include('services.urls')),
 ]

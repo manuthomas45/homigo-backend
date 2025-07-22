@@ -23,7 +23,9 @@ import logging
 from .tasks import send_otp_email,send_password_reset_email
 from celery import shared_task
 from backend.redis_client import redis_instance
-
+from technicians.models import TechnicianDetails,ServiceCategory
+from rest_framework import generics, permissions
+from .serializers import UserServiceCategorySerializer
 
 User = get_user_model()
 logger=logging.getLogger('homigo')
@@ -41,6 +43,8 @@ class RegisterView(APIView):
 
             # Generate and store OTP
             otp = str(random.randint(100000, 999999))
+         
+            logger.info(otp)
             redis_instance.setex(f"otp:{user.email}", 120, otp)
             logger.debug(f"generated:{otp}")
 
@@ -103,6 +107,7 @@ class ResendOTPView(APIView):
 
         # Generate and store new OTP
         otp = str(random.randint(100000, 999999))
+        logger.debug(f"generated:{otp}")
         redis_instance.setex(f"otp:{email}", 120, otp)
 
         # Send new OTP email
@@ -134,15 +139,29 @@ class LoginView(APIView):
         except User.DoesNotExist:
             return Response({'message': 'Email is incorrect'}, status=status.HTTP_401_UNAUTHORIZED)
 
-        # Authenticate user (check password)
+        # Authenticate user
         user = authenticate(request, email=email, password=password)
         if not user:
             return Response({'message': 'Password is incorrect'}, status=status.HTTP_401_UNAUTHORIZED)
 
+        # Check if user is verified
         if not user.isVerified:
             return Response({'message': 'Please verify your email before logging in'}, status=status.HTTP_403_FORBIDDEN)
 
-        # Generate JWT tokens
+        # Check if user is blocked
+        if user.status == 'blocked':
+            return Response({'message': 'Your account has been blocked by the admin. Please contact support for further assistance.'}, status=status.HTTP_403_FORBIDDEN)
+
+        # If technician, check technician status
+        if user.role == 'technician':
+            try:
+                technician_details = user.technician_details
+                if technician_details.status == 'blocked':
+                    return Response({'message': 'Your technician account has been blocked by the admin. Please contact support for further assistance.'}, status=status.HTTP_403_FORBIDDEN)
+            except TechnicianDetails.DoesNotExist:
+                return Response({'message': 'Technician details not found. Please contact support.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Generate tokens
         refresh = RefreshToken.for_user(user)
         access_token = str(refresh.access_token)
         refresh_token = str(refresh)
@@ -152,12 +171,20 @@ class LoginView(APIView):
             'message': 'Login successful',
             'access_token': access_token,
             'user': {
+                'id': user.id,
+                'firstName': user.firstName,
+                'lastName': user.lastName,
                 'email': user.email,
+                'phoneNumber': user.phoneNumber,
+                'profilePicture': str(user.profilePicture),
                 'role': user.role,
+                'isVerified': user.isVerified,
+                'status': user.status,
             }
         }, status=status.HTTP_200_OK)
 
-        # Set refresh_token in HTTP-only cookie
+
+        # Set refresh token in cookie
         response.set_cookie(
             key='refresh_token',
             value=refresh_token,
@@ -168,6 +195,7 @@ class LoginView(APIView):
         )
 
         return response
+
 
 
 class RefreshTokenView(APIView):
@@ -333,6 +361,8 @@ class GoogleAuthView(APIView):
             response_data = {
                 'access_token': access_token,
                 'user': {
+                    'id':user.id,
+                    'firstName': user.firstName,
                     'email': user.email,
                     'role': user.role,
                 }
@@ -369,7 +399,7 @@ class ForgotPasswordView(APIView):
                 # Call celery task instead of send_mail directly
                 send_password_reset_email.delay(email, str(token.token))
                 logger.info(f"mail send to {user.email}")
-            except User.DoesNotExist:
+            except User.DoesNotExist as e:
                 logger.error(f"[EMAIL FAILED] to {email}: {str(e)}")
             return Response({"message": "If an account exists, a reset link has been sent to your email."}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -448,3 +478,57 @@ class ChangePasswordView(APIView):
         user.save()
 
         return Response({'message': 'Password updated successfully'}, status=status.HTTP_200_OK)
+    
+
+
+class AddressListCreateView(generics.ListCreateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = AddressSerializer
+
+    def get_queryset(self):
+        return Address.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class AddressDetailView(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = AddressSerializer
+
+    def get_queryset(self):
+        return Address.objects.filter(user=self.request.user)
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+class SetDefaultAddressView(generics.UpdateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = AddressSerializer
+
+    def get_queryset(self):
+        return Address.objects.filter(user=self.request.user)
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        # Unset all other default addresses for the user
+        Address.objects.filter(user=self.request.user, is_default=True).update(is_default=False)
+        instance.is_default = True
+        instance.save()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+    
+
+
+class UserServiceCategoriesView(generics.ListAPIView):
+    queryset = ServiceCategory.objects.all().prefetch_related('service_types')
+    serializer_class = UserServiceCategorySerializer
+    permission_classes = [permissions.AllowAny]  # Allows access for all users

@@ -13,5 +13,9 @@ urlpatterns = [
     path('reset-password/', ResetPasswordView.as_view(), name='reset-password'),
     path('has-password/', HasPasswordView.as_view(), name='has-password'),
     path('change-password/', ChangePasswordView.as_view(), name='change-password'),
+    path('addresses/', AddressListCreateView.as_view(), name='address-list-create'),
+    path('addresses/<int:pk>/', AddressDetailView.as_view(), name='address-detail'),
+    path('addresses/<int:pk>/set_default/', SetDefaultAddressView.as_view(), name='set-default-address'),
+    path('categories-with-types/', UserServiceCategoriesView.as_view(), name='user-service-categories'),
 
 ]

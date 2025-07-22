@@ -4,7 +4,7 @@ from cloudinary.models import CloudinaryField
 import uuid
 from datetime import timedelta
 from django.utils import timezone 
-
+from django.conf import settings
 
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
@@ -67,3 +67,17 @@ class PasswordResetToken(models.Model):
 
     def __str__(self):
         return f"Reset token for {self.user.email}"
+
+
+class Address(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='addresses')
+    address = models.TextField()
+    city = models.CharField(max_length=100)
+    state = models.CharField(max_length=100)
+    pincode = models.CharField(max_length=10)
+    phone_number = models.CharField(max_length=12)  # Optional per-address phone
+    is_default = models.BooleanField(default=False)
+    
+
+    def __str__(self):
+        return f"{self.address}, {self.city} ({self.phone_number})"

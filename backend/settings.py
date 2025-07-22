@@ -203,7 +203,7 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 
-
+import os
 
 LOGGING = {
     'version': 1,
@@ -221,16 +221,22 @@ LOGGING = {
             'level': 'DEBUG',
             'class': 'logging.handlers.TimedRotatingFileHandler',
             'filename': os.path.join(BASE_DIR, 'homigo.log'),
-            'when': 'D',          # D = Days
-            'interval': 3,        # Rotate every 3 days
-            'backupCount': 5,     # Keep last 2 files, older files will be deleted
+            'when': 'midnight',
+            'interval': 1,
+            'backupCount': 5,
+            'formatter': 'verbose',
+            'delay': True,
+        },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
             'formatter': 'verbose',
         },
     },
 
     'loggers': {
         'homigo': {
-            'handlers': ['file'],
+            'handlers': ['file', 'console'],
             'level': 'DEBUG',
             'propagate': False,
         },

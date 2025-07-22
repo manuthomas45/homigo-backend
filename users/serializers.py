@@ -1,7 +1,9 @@
 from rest_framework import serializers
-from .models import User, PasswordResetToken
+from .models import User, PasswordResetToken,Address
 import cloudinary
 import re
+from technicians.models import ServiceCategory
+from services.models import  ServiceType
 
 class UserSerializer(serializers.ModelSerializer):
     profilePicture = serializers.SerializerMethodField()
@@ -96,3 +98,46 @@ class UserUpdateSerializer(serializers.ModelSerializer):
         if not value or not re.match(r'^\d{10}$', value):
             raise serializers.ValidationError("Phone number must be exactly 10 digits")
         return value
+
+
+class AddressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Address
+        fields = ['id', 'address', 'city', 'state', 'pincode', 'phone_number', 'is_default',]
+        extra_kwargs = {
+            'user': {'read_only': True},
+            'is_default': {'read_only': True}  # Make is_default read-only in create/update
+        }
+
+    def create(self, validated_data):
+        validated_data['user'] = self.context['request'].user
+        # Do not set is_default here; let it default to False or handle via SetDefaultAddressView
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        # Exclude is_default from update to prevent accidental changes
+        validated_data.pop('is_default', None)
+        return super().update(instance, validated_data)
+    
+
+
+class ServiceTypeSerializer(serializers.ModelSerializer):
+    image_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ServiceType
+        fields = ['id', 'name', 'rate', 'description', 'image_url']
+
+    def get_image_url(self, obj):
+        return obj.image.url if obj.image else None
+
+class UserServiceCategorySerializer(serializers.ModelSerializer):
+    service_types = ServiceTypeSerializer(many=True, read_only=True)
+    service_image_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ServiceCategory
+        fields = ['id', 'name', 'service_image_url', 'service_types']
+
+    def get_service_image_url(self, obj):
+        return obj.service_image.url if obj.service_image else None

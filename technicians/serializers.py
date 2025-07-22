@@ -10,7 +10,7 @@ class ServiceCategorySerializer(serializers.ModelSerializer):
         model = ServiceCategory
         fields = ['id', 'name', 'service_image']
 
-class TechnicianDetailsSerializerc(serializers.ModelSerializer):
+class TechnicianDetailsSerializercreate(serializers.ModelSerializer):
     category = serializers.PrimaryKeyRelatedField(queryset=ServiceCategory.objects.all())
     aadhaar_card_picture = serializers.ImageField()
     certificate_picture = serializers.ImageField()

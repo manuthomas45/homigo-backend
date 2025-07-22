@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status, generics
 from rest_framework.permissions import IsAuthenticated,AllowAny
 from .models import ServiceCategory, TechnicianDetails
-from .serializers import ServiceCategorySerializer, TechnicianDetailsSerializerc,TechnicianDetailsSerializer
+from .serializers import ServiceCategorySerializer, TechnicianDetailsSerializercreate,TechnicianDetailsSerializer
 from users.serializers import *
 import logging
 logger=logging.getLogger('homigo')
@@ -40,7 +40,7 @@ class TechnicianRegisterView(APIView):
                 )
 
             # Validate and save technician details
-            serializer = TechnicianDetailsSerializerc(data=request.data, context={'request': request})
+            serializer = TechnicianDetailsSerializercreate(data=request.data, context={'request': request})
             if serializer.is_valid():
                 serializer.save()
                 # Serialize the updated user data

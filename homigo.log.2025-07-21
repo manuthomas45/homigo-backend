@@ -1,0 +1,104 @@
+[INFO] 2025-07-21 09:36:43,133 homigo - Received POST data: <QueryDict: {'category': ['12'], 'name': ['Cleaning'], 'rate': ['5643'], 'description': ['dfhdzhdfd'], 'image': [<InMemoryUploadedFile: plumbing.jpg (image/jpeg)>]}>
+[ERROR] 2025-07-21 09:36:44,055 homigo - Error creating service type: 'NoneType' object has no attribute 'id'
+Traceback (most recent call last):
+  File "D:\brototype\2nd project\HomiGo\backend\services\views.py", line 35, in post
+    if serializer.is_valid():
+       ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\brototype\2nd project\HomiGo\virtualenv\Lib\site-packages\rest_framework\serializers.py", line 225, in is_valid
+    self._validated_data = self.run_validation(self.initial_data)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\brototype\2nd project\HomiGo\virtualenv\Lib\site-packages\rest_framework\serializers.py", line 447, in run_validation
+    value = self.validate(value)
+            ^^^^^^^^^^^^^^^^^^^^
+  File "D:\brototype\2nd project\HomiGo\backend\services\serializers.py", line 39, in validate
+    if ServiceType.objects.filter(category=data['category'], name=data['name']).exclude(id=self.instance.id if hasattr(self, 'instance') else None).exists():
+                                                                                           ^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'id'
+[INFO] 2025-07-21 09:37:34,935 homigo - Received POST data: <QueryDict: {'category': ['12'], 'name': ['Cleaning'], 'rate': ['5643'], 'description': ['dfhdzhdfd'], 'image': [<InMemoryUploadedFile: plumbing.jpg (image/jpeg)>]}>
+[ERROR] 2025-07-21 09:37:35,041 homigo - Error creating service type: 'NoneType' object has no attribute 'id'
+Traceback (most recent call last):
+  File "D:\brototype\2nd project\HomiGo\backend\services\views.py", line 35, in post
+    if serializer.is_valid():
+       ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\brototype\2nd project\HomiGo\virtualenv\Lib\site-packages\rest_framework\serializers.py", line 225, in is_valid
+    self._validated_data = self.run_validation(self.initial_data)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\brototype\2nd project\HomiGo\virtualenv\Lib\site-packages\rest_framework\serializers.py", line 447, in run_validation
+    value = self.validate(value)
+            ^^^^^^^^^^^^^^^^^^^^
+  File "D:\brototype\2nd project\HomiGo\backend\services\serializers.py", line 39, in validate
+    if ServiceType.objects.filter(category=data['category'], name=data['name']).exclude(id=self.instance.id if hasattr(self, 'instance') else None).exists():
+                                                                                           ^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'id'
+[INFO] 2025-07-21 09:38:14,023 homigo - Received POST data: <QueryDict: {'category': ['12'], 'name': ['Cleaning'], 'rate': ['5643'], 'description': ['dfhdzhdfd'], 'image': [<InMemoryUploadedFile: plumbing.jpg (image/jpeg)>]}>
+[ERROR] 2025-07-21 09:38:14,033 homigo - Error creating service type: 'NoneType' object has no attribute 'id'
+Traceback (most recent call last):
+  File "D:\brototype\2nd project\HomiGo\backend\services\views.py", line 35, in post
+    if serializer.is_valid():
+       ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\brototype\2nd project\HomiGo\virtualenv\Lib\site-packages\rest_framework\serializers.py", line 225, in is_valid
+    self._validated_data = self.run_validation(self.initial_data)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\brototype\2nd project\HomiGo\virtualenv\Lib\site-packages\rest_framework\serializers.py", line 447, in run_validation
+    value = self.validate(value)
+            ^^^^^^^^^^^^^^^^^^^^
+  File "D:\brototype\2nd project\HomiGo\backend\services\serializers.py", line 39, in validate
+    if ServiceType.objects.filter(category=data['category'], name=data['name']).exclude(id=self.instance.id if hasattr(self, 'instance') else None).exists():
+                                                                                           ^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'id'
+[INFO] 2025-07-21 09:45:45,780 homigo - Received POST data: <QueryDict: {'category': ['26'], 'name': ['cvndfb'], 'rate': ['46346'], 'description': ['fsfzsf'], 'image': [<InMemoryUploadedFile: cleaning.jpg (image/jpeg)>]}>
+[INFO] 2025-07-21 09:46:02,563 homigo - Received POST data: <QueryDict: {'category': ['26'], 'name': ['cvndfb'], 'rate': ['46346'], 'description': ['fsfzsf'], 'image': [<InMemoryUploadedFile: cleaning.jpg (image/jpeg)>]}>
+[ERROR] 2025-07-21 09:46:02,572 homigo - Serializer validation errors: {'non_field_errors': [ErrorDetail(string='The fields category, name must make a unique set.', code='unique')]}
+[INFO] 2025-07-21 09:48:22,882 homigo - Received POST data: <QueryDict: {'category': ['26'], 'name': ['cvndfb'], 'rate': ['46346'], 'description': ['fsfzsf'], 'image': [<InMemoryUploadedFile: cleaning.jpg (image/jpeg)>]}>
+[ERROR] 2025-07-21 09:48:22,891 homigo - Serializer validation errors: {'non_field_errors': [ErrorDetail(string='The fields category, name must make a unique set.', code='unique')]}
+[INFO] 2025-07-21 09:49:14,746 homigo - Received POST data: <QueryDict: {'category': ['26'], 'name': ['cvndfbsfgshetjdxgtxsjgsx'], 'rate': ['46346'], 'description': ['fsfzsf'], 'image': [<InMemoryUploadedFile: cleaning.jpg (image/jpeg)>]}>
+[INFO] 2025-07-21 09:53:31,667 homigo - Received POST data: <QueryDict: {'category': ['26'], 'name': ['vfdf'], 'rate': ['575'], 'description': ['dgmdmxg'], 'image': [<InMemoryUploadedFile: painting.jpeg (image/jpeg)>]}>
+[ERROR] 2025-07-21 09:53:31,807 homigo - Error creating service type: 'NoneType' object has no attribute 'id'
+Traceback (most recent call last):
+  File "D:\brototype\2nd project\HomiGo\backend\services\views.py", line 35, in post
+    if serializer.is_valid():
+       ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\brototype\2nd project\HomiGo\virtualenv\Lib\site-packages\rest_framework\serializers.py", line 225, in is_valid
+    self._validated_data = self.run_validation(self.initial_data)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\brototype\2nd project\HomiGo\virtualenv\Lib\site-packages\rest_framework\serializers.py", line 447, in run_validation
+    value = self.validate(value)
+            ^^^^^^^^^^^^^^^^^^^^
+  File "D:\brototype\2nd project\HomiGo\backend\services\serializers.py", line 39, in validate
+    if ServiceType.objects.filter(category=data['category'], name=data['name']).exclude(id=self.instance.id if hasattr(self, 'instance') else None).exists():
+                                                                                           ^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'id'
+[INFO] 2025-07-21 10:06:09,193 homigo - Received POST data: <QueryDict: {'category': ['12'], 'name': ['Plumbing'], 'rate': ['1111'], 'description': ['dfhdjzdg'], 'image': [<InMemoryUploadedFile: ac.jpg (image/jpeg)>]}>
+[INFO] 2025-07-21 10:06:32,823 homigo - Received POST data: <QueryDict: {'category': ['12'], 'name': ['Plumbing'], 'rate': ['1111'], 'description': ['dfhdjzdg'], 'image': [<InMemoryUploadedFile: ac.jpg (image/jpeg)>]}>
+[ERROR] 2025-07-21 10:06:32,833 homigo - Serializer validation errors: {'non_field_errors': [ErrorDetail(string='The fields category, name must make a unique set.', code='unique')]}
+[INFO] 2025-07-21 10:17:22,254 homigo - Received POST data: <QueryDict: {'category': ['12'], 'name': ['Plum'], 'rate': ['1111'], 'description': ['dfhdjzdg'], 'image': [<InMemoryUploadedFile: ac.jpg (image/jpeg)>]}>
+[INFO] 2025-07-21 10:17:24,781 homigo - Received POST data: <QueryDict: {'category': ['12'], 'name': ['Plum'], 'rate': ['1111'], 'description': ['dfhdjzdg'], 'image': [<InMemoryUploadedFile: ac.jpg (image/jpeg)>]}>
+[ERROR] 2025-07-21 10:17:24,794 homigo - Serializer validation errors: {'non_field_errors': [ErrorDetail(string='The fields category, name must make a unique set.', code='unique')]}
+[INFO] 2025-07-21 10:17:41,074 homigo - Received POST data: <QueryDict: {'category': ['11'], 'name': ['manuthomas'], 'rate': ['1111'], 'description': ['dfhdjzdg'], 'image': [<InMemoryUploadedFile: ac.jpg (image/jpeg)>]}>
+[INFO] 2025-07-21 10:21:14,912 homigo - Received POST data: <QueryDict: {'category': ['26'], 'name': ['acrr'], 'rate': ['34534'], 'description': ['dfjdgx'], 'image': [<InMemoryUploadedFile: certificate.jpeg (image/jpeg)>]}>
+[INFO] 2025-07-21 10:25:36,048 homigo - Received POST data: <QueryDict: {'category': ['26'], 'name': ['xvbndv'], 'rate': ['356'], 'description': ['ggsnxgvx'], 'image': [<InMemoryUploadedFile: ac.jpg (image/jpeg)>]}>
+[INFO] 2025-07-21 10:26:28,967 homigo - Received POST data: <QueryDict: {'category': ['26'], 'name': ['jamessfs'], 'rate': ['424'], 'description': ['sfhsfz'], 'image': [<InMemoryUploadedFile: Carpentry.jpeg (image/jpeg)>]}>
+[INFO] 2025-07-21 10:26:49,121 homigo - Received POST data: <QueryDict: {'category': ['26'], 'name': ['fbsdf'], 'rate': ['424'], 'description': ['sfhhzf'], 'image': [<InMemoryUploadedFile: ac.jpg (image/jpeg)>]}>
+[INFO] 2025-07-21 10:31:36,340 homigo - Received POST data: <QueryDict: {'category': ['26'], 'name': ['Plumbing'], 'rate': ['2454'], 'description': ['scbsdfcdd'], 'image': [<InMemoryUploadedFile: painting.jpeg (image/jpeg)>]}>
+[INFO] 2025-07-21 10:31:44,428 homigo - Received POST data: <QueryDict: {'category': ['26'], 'name': ['Plumbing'], 'rate': ['2454'], 'description': ['scbsdfcdd'], 'image': [<InMemoryUploadedFile: painting.jpeg (image/jpeg)>]}>
+[ERROR] 2025-07-21 10:31:44,436 homigo - Serializer validation errors: {'non_field_errors': [ErrorDetail(string='The fields category, name must make a unique set.', code='unique')]}
+[INFO] 2025-07-21 10:32:13,274 homigo - Received POST data: <QueryDict: {'category': ['26'], 'name': ['Plumbing'], 'rate': ['2454'], 'description': ['scbsdfcdd'], 'image': [<InMemoryUploadedFile: painting.jpeg (image/jpeg)>]}>
+[ERROR] 2025-07-21 10:32:13,283 homigo - Serializer validation errors: {'non_field_errors': [ErrorDetail(string='The fields category, name must make a unique set.', code='unique')]}
+[INFO] 2025-07-21 10:35:36,919 homigo - Received POST data: <QueryDict: {'category': ['26'], 'name': ['jinudfg'], 'rate': ['436'], 'description': ['dgtjxf'], 'image': [<InMemoryUploadedFile: plumbing.jpg (image/jpeg)>]}>
+[INFO] 2025-07-21 10:40:30,996 homigo - Received POST data: <QueryDict: {'category': ['26'], 'name': ['jyujuinu'], 'rate': ['2432'], 'description': ['wegwredge'], 'image': [<InMemoryUploadedFile: electrical.jpg (image/jpeg)>]}>
+[INFO] 2025-07-21 10:54:33,727 homigo - Received POST data: <QueryDict: {'category': ['26'], 'name': ['sgseg'], 'rate': ['444'], 'description': ['fndgdg'], 'image': [<InMemoryUploadedFile: plumbing.jpg (image/jpeg)>]}>
+[INFO] 2025-07-21 10:55:15,645 homigo - Received POST data: <QueryDict: {'category': ['26'], 'name': ['Plumbing'], 'rate': ['4565'], 'description': ['tdjsftd']}>
+[ERROR] 2025-07-21 10:55:15,652 homigo - Serializer validation errors: {'non_field_errors': [ErrorDetail(string='The fields category, name must make a unique set.', code='unique')]}
+[INFO] 2025-07-21 10:55:25,325 homigo - Received POST data: <QueryDict: {'category': ['26'], 'name': ['Plumbingt'], 'rate': ['4565'], 'description': ['tdjsftd']}>
+[INFO] 2025-07-21 12:12:54,008 homigo - Received registration request.
+[DEBUG] 2025-07-21 12:12:54,009 homigo - Request data: {'firstName': 'dominic', 'lastName': 'dominic', 'email': 'dominic@gmail.com', 'phoneNumber': '8086003409', 'password': 'Manu@123'}
+[INFO] 2025-07-21 12:12:54,015 homigo - serializer:UserRegisterSerializer(data={'firstName': 'dominic', 'lastName': 'dominic', 'email': 'dominic@gmail.com', 'phoneNumber': '8086003409', 'password': 'Manu@123'}):
+    firstName = CharField(label='FirstName', max_length=100)
+    lastName = CharField(label='LastName', max_length=100)
+    email = CharField(max_length=100, validators=[<UniqueValidator(queryset=User.objects.all())>])
+    password = CharField(max_length=255, write_only=True)
+    phoneNumber = CharField(label='PhoneNumber', max_length=15)
+[INFO] 2025-07-21 12:12:58,282 homigo - 114612
+[DEBUG] 2025-07-21 12:12:58,298 homigo - generated:114612
+[DEBUG] 2025-07-21 12:12:58,504 homigo - Email task queued for: dominic@gmail.com
+[INFO] 2025-07-21 18:07:08,645 homigo - Received POST data: <QueryDict: {'category': ['26'], 'name': ['josuttyryt'], 'rate': ['464'], 'description': ['dfhjrfg'], 'image': [<InMemoryUploadedFile: Carpentry.jpeg (image/jpeg)>]}>
