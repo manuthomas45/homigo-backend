@@ -26,4 +26,5 @@ urlpatterns = [
     path('api/v1/adminpanel/', include('admindashboard.urls')),  # Changed to adminpanel
     path('api/v1/technician/', include('technicians.urls')),
     path('api/v1/services/',include('services.urls')),
+    path('api/v1/bookings/',include('booking.urls')),
 ]

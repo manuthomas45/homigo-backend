@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'cloudinary_storage',      # Integration with Django's storage system
     'cloudinary',              # Cloudinary core library
     'services',
+    'booking'
 
 ]
 
@@ -246,3 +247,9 @@ LOGGING = {
 CELERY_BROKER_URL = 'redis://localhost:6379/0'  # Ensure Redis is running
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
+
+
+STRIPE_PUBLISHABLE_KEY = config('Publishable_key')
+STRIPE_SECRET_KEY = config('Secret_key')
+STRIPE_WEBHOOK_SECRET = os.getenv('STRIPE_WEBHOOK_SECRET', '')  # Optional, for webhooks
+
