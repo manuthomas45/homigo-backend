@@ -8,6 +8,9 @@ from .models import Booking
 from .serializers import BookingSerializer
 from django.contrib.auth.models import User
 from technicians.models import ServiceCategory
+import traceback
+import json
+from django.http import JsonResponse
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -78,8 +81,7 @@ class CreateCheckoutSessionView(APIView):
 #         except stripe.error.StripeError as e:
 #             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-import json
-from django.http import JsonResponse
+
 
 class CreateBookingView(APIView):
     permission_classes = [IsAuthenticated]
@@ -138,6 +140,6 @@ class CreateBookingView(APIView):
         except stripe.error.StripeError as e:
             return Response({'error': f"Stripe error: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            import traceback
             traceback.print_exc()
             return Response({'error': f"Unexpected error: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+

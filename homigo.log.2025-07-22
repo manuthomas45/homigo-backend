@@ -1,0 +1,16 @@
+[INFO] 2025-07-22 17:45:27,211 homigo - 28
+[ERROR] 2025-07-22 17:50:57,190 homigo - Error creating service category: duplicate key value violates unique constraint "technicians_servicecategory_name_key"
+DETAIL:  Key (name)=(fdgvd) already exists.
+
+[INFO] 2025-07-22 18:01:31,468 homigo - 32
+[ERROR] 2025-07-22 18:02:00,929 homigo - Serializer validation errors: {'name': [ErrorDetail(string='service category with this name already exists.', code='unique')]}
+[INFO] 2025-07-22 18:03:28,321 homigo - 30
+[INFO] 2025-07-22 18:03:31,506 homigo - 12
+[INFO] 2025-07-22 18:05:58,580 homigo - 33
+[INFO] 2025-07-22 18:07:21,800 homigo - Received POST data: <QueryDict: {'category': ['26'], 'name': ['AC General Service'], 'rate': ['999'], 'description': ['Thorough cleaning of filters, coils, and fins to improve cooling performance and energy efficiency. Recommended every 3–6 months.'], 'image': [<InMemoryUploadedFile: ac.jpg (image/jpeg)>]}>
+[INFO] 2025-07-22 18:09:03,074 homigo - Received POST data: <QueryDict: {'category': ['11'], 'name': ['Tap Repair'], 'rate': ['999'], 'description': ['Fixing leaking or broken taps, replacing old faucets, and resolving low water pressure issues in kitchens or bathrooms.\r\n'], 'image': [<InMemoryUploadedFile: plumbing.jpg (image/jpeg)>]}>
+[INFO] 2025-07-22 18:10:15,939 homigo - Received POST data: <QueryDict: {'category': ['29'], 'name': ['Fan Light Switch Installation'], 'rate': ['1111'], 'description': ['Safe installation or replacement of ceiling fans, tube lights, LED panels, and electrical switches with proper wiring and testing.'], 'image': [<InMemoryUploadedFile: electrical.jpg (image/jpeg)>]}>
+[INFO] 2025-07-22 18:11:13,655 homigo - Received POST data: <QueryDict: {'category': ['26'], 'name': ['AC Repair'], 'rate': ['1499'], 'description': ['Covers diagnosis and repair of cooling issues, unusual noises, gas leaks, electrical faults, and non-working units by expert technicians.\r\n'], 'image': [<InMemoryUploadedFile: ac.jpg (image/jpeg)>]}>
+[INFO] 2025-07-22 18:12:07,807 homigo - Received POST data: <QueryDict: {'category': ['26'], 'name': ['AC Installation and Uninstallation'], 'rate': ['1999'], 'description': ['Professional mounting, wiring, and testing of new AC units, or safe removal of existing units with proper sealing and handling.\r\n'], 'image': [<InMemoryUploadedFile: ac.jpg (image/jpeg)>]}>
+[INFO] 2025-07-22 18:13:28,023 homigo - Received POST data: <QueryDict: {'category': ['11'], 'name': ['Bathroom Fitting Installation'], 'rate': ['1199'], 'description': ['Installation of bathroom accessories like showers, washbasins, flush tanks, geysers, and commodes with proper alignment and sealing.\r\n'], 'image': [<InMemoryUploadedFile: plumbing.jpg (image/jpeg)>]}>
+[INFO] 2025-07-22 18:27:41,479 homigo - 34

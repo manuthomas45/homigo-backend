@@ -4,7 +4,7 @@ from services.models import ServiceType
 from users.models import Address
 from django.contrib.auth.models import User
 from django.conf import settings
-
+from technicians.models import TechnicianDetails
 
 
 class Booking(models.Model):

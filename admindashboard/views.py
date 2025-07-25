@@ -14,6 +14,14 @@ import logging
 from django.shortcuts import get_object_or_404
 from rest_framework.parsers import MultiPartParser,FormParser
 from django.db import IntegrityError  
+# bookings/views.py
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+from django.db.models import Q
+from booking.models import Booking
+from .serializers import BookingSerializer
 
 logger=logging.getLogger('homigo')
 
@@ -274,3 +282,99 @@ class ServiceCategoryDetailView(APIView):
                 {"error": "Failed to update service category"}, 
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+        
+
+
+class AdminBookingsView(APIView):
+    permission_classes = [IsAuthenticated,IsAdminRole]
+    
+    def get(self, request):
+        try:
+            # Only allow admin users
+            # if request.user.role != 'admin':
+            #     return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
+            
+            search_query = request.GET.get('search', '')
+            bookings_query = Booking.objects.select_related(
+                'user', 
+                'technician__user', 
+                'service_type', 
+                'category', 
+                'address'
+            ).all()
+            
+            if search_query:
+                bookings_query = bookings_query.filter(
+                    Q(user__firstName__icontains=search_query) |
+                    Q(user__lastName__icontains=search_query) |
+                    Q(user__email__icontains=search_query) |
+                    Q(service_type__name__icontains=search_query) |
+                    Q(technician__user__firstName__icontains=search_query) |
+                    Q(technician__user__lastName__icontains=search_query)
+                )
+            
+            bookings = []
+            for booking in bookings_query.order_by('-id'):
+                booking_data = {
+                    'id': booking.id,
+                    'user_name': f"{booking.user.firstName} {booking.user.lastName}",
+                    'user_email': booking.user.email,
+                    'technician_name': f"{booking.technician.user.firstName} {booking.technician.user.lastName}" if booking.technician else None,
+                    'technician_id': booking.technician.id if booking.technician else None,
+                    'amount': str(booking.amount),
+                    'booking_date': booking.booking_date.strftime('%Y-%m-%d') if booking.booking_date else None,
+                    'service_type': booking.service_type.name,
+                    'category': booking.category.name,
+                    'status': booking.status,
+                    'address': {
+                        'id': booking.address.id,
+                        'address': booking.address.address,
+                        'city': booking.address.city,
+                        'state': booking.address.state,
+                        'pincode': booking.address.pincode,
+                        'phone_number': booking.address.phone_number,
+                    }
+                }
+                bookings.append(booking_data)
+            
+            return Response({
+                'success': True,
+                'bookings': bookings
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            print(f"Admin Bookings Error: {str(e)}")
+            return Response({
+                'success': False,
+                'error': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class UpdateBookingStatusView(APIView):
+    permission_classes = [IsAuthenticated,IsAdminRole]
+    
+    def post(self, request, booking_id):
+        try:
+            # if request.user.role != 'admin':
+            #     return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
+            
+            booking = Booking.objects.get(id=booking_id)
+            new_status = request.data.get('status')
+            
+            if new_status not in ['pending', 'cancelled', 'booked', 'confirmed', 'completed']:
+                return Response({'error': 'Invalid status'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            booking.status = new_status
+            booking.save()
+            
+            return Response({
+                'success': True,
+                'booking': {
+                    'id': booking.id,
+                    'status': booking.status
+                }
+            }, status=status.HTTP_200_OK)
+            
+        except Booking.DoesNotExist:
+            return Response({'error': 'Booking not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
