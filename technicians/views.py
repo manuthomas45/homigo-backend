@@ -412,3 +412,6 @@ class CompleteBookingView(APIView):
             print(f"Category validation error: {str(e)}")
             return False
         
+
+class WalletView(APIView):
+    
