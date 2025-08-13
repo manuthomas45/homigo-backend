@@ -10,5 +10,6 @@ urlpatterns = [
     path('service-categories/<int:pk>/', ServiceCategoryDetailView.as_view(),name='service-category-detail'),
     path('bookings/', AdminBookingsView.as_view(), name='admin-bookings'),
     path('bookings/<int:booking_id>/update-status/', UpdateBookingStatusView.as_view(), name='update-booking-status'),
+    path('wallet/', AdminWalletView.as_view(), name='admin-wallet'),
 
 ]

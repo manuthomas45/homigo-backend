@@ -10,5 +10,6 @@ urlpatterns = [
     path('bookings/accepted/', TechnicianAcceptedBookingsView.as_view(), name='technician-accepted-bookings'),
     path('bookings/<int:booking_id>/accept/', AcceptBookingView.as_view(), name='accept-booking'),
     path('bookings/<int:booking_id>/complete/', CompleteBookingView.as_view(), name='complete-booking'),
+    path('wallet/', TechnicianWalletView.as_view(), name='technician-wallet'),
 
 ]

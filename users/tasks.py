@@ -6,9 +6,16 @@ from django.conf import settings
 @shared_task
 def send_otp_email(email, otp):
     try:
+        message = (
+            f"Dear Valued User,\n\n"
+            f"Thank you for choosing HomiGo. Your One-Time Password (OTP) for account registration is {otp}. "
+            f"This code is valid for the next 10 minutes. Please use it to securely complete your registration process.\n\n"
+            f"Should you have any questions, feel free to contact our support team \n\n"
+            f"Best regards,\nThe HomiGo Team"
+        )
         send_mail(
             'Your HomiGo OTP',
-            f'Your OTP for registration is: {otp}',
+            message,
             settings.EMAIL_HOST_USER,
             [email],
             fail_silently=False,

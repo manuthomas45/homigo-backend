@@ -1,0 +1,48 @@
+[INFO] 2025-07-24 09:04:53,140 homigo - Received registration request.
+[DEBUG] 2025-07-24 09:04:53,143 homigo - Request data: {'firstName': 'seban', 'lastName': 'tommy', 'email': 'seban1@gmail.com', 'phoneNumber': '8086002001', 'password': 'Manu@123'}
+[INFO] 2025-07-24 09:04:53,146 homigo - serializer:UserRegisterSerializer(data={'firstName': 'seban', 'lastName': 'tommy', 'email': 'seban1@gmail.com', 'phoneNumber': '8086002001', 'password': 'Manu@123'}):
+    firstName = CharField(label='FirstName', max_length=100)
+    lastName = CharField(label='LastName', max_length=100)
+    email = CharField(max_length=100, validators=[<UniqueValidator(queryset=User.objects.all())>])
+    password = CharField(max_length=255, write_only=True)
+    phoneNumber = CharField(label='PhoneNumber', max_length=15)
+[INFO] 2025-07-24 09:04:55,781 homigo - 116112
+[DEBUG] 2025-07-24 09:04:55,788 homigo - generated:116112
+[DEBUG] 2025-07-24 09:04:55,905 homigo - Email task queued for: seban1@gmail.com
+[INFO] 2025-07-24 09:21:40,604 homigo - Received registration request.
+[DEBUG] 2025-07-24 09:21:40,604 homigo - Request data: {'firstName': 'seban', 'lastName': 'tommy', 'email': 'seban2@gmail.com', 'phoneNumber': '8086007301', 'password': 'Manu@123'}
+[INFO] 2025-07-24 09:21:40,605 homigo - serializer:UserRegisterSerializer(data={'firstName': 'seban', 'lastName': 'tommy', 'email': 'seban2@gmail.com', 'phoneNumber': '8086007301', 'password': 'Manu@123'}):
+    firstName = CharField(label='FirstName', max_length=100)
+    lastName = CharField(label='LastName', max_length=100)
+    email = CharField(max_length=100, validators=[<UniqueValidator(queryset=User.objects.all())>])
+    password = CharField(max_length=255, write_only=True)
+    phoneNumber = CharField(label='PhoneNumber', max_length=15)
+[INFO] 2025-07-24 09:21:41,252 homigo - 562253
+[DEBUG] 2025-07-24 09:21:41,255 homigo - generated:562253
+[DEBUG] 2025-07-24 09:21:41,264 homigo - Email task queued for: seban2@gmail.com
+[INFO] 2025-07-24 13:28:36,085 homigo - Received registration request.
+[DEBUG] 2025-07-24 13:28:37,665 homigo - Request data: {'firstName': 'sam', 'lastName': 'sojan', 'email': 'sam@gmail.com', 'phoneNumber': '8294750378', 'password': 'Manu@123'}
+[INFO] 2025-07-24 13:28:37,666 homigo - serializer:UserRegisterSerializer(data={'firstName': 'sam', 'lastName': 'sojan', 'email': 'sam@gmail.com', 'phoneNumber': '8294750378', 'password': 'Manu@123'}):
+    firstName = CharField(label='FirstName', max_length=100)
+    lastName = CharField(label='LastName', max_length=100)
+    email = CharField(max_length=100, validators=[<UniqueValidator(queryset=User.objects.all())>])
+    password = CharField(max_length=255, write_only=True)
+    phoneNumber = CharField(label='PhoneNumber', max_length=15)
+[INFO] 2025-07-24 13:28:38,628 homigo - 508347
+[DEBUG] 2025-07-24 13:28:38,657 homigo - generated:508347
+[DEBUG] 2025-07-24 13:28:38,984 homigo - Email task queued for: sam@gmail.com
+[INFO] 2025-07-24 13:30:58,008 homigo - Received registration request.
+[DEBUG] 2025-07-24 13:30:58,012 homigo - Request data: {'firstName': 'jothish', 'lastName': 'manu', 'email': 'sidape7441@hadvar.com', 'phoneNumber': '8294750378', 'password': 'Manu@123'}
+[INFO] 2025-07-24 13:30:58,018 homigo - serializer:UserRegisterSerializer(data={'firstName': 'jothish', 'lastName': 'manu', 'email': 'sidape7441@hadvar.com', 'phoneNumber': '8294750378', 'password': 'Manu@123'}):
+    firstName = CharField(label='FirstName', max_length=100)
+    lastName = CharField(label='LastName', max_length=100)
+    email = CharField(max_length=100, validators=[<UniqueValidator(queryset=User.objects.all())>])
+    password = CharField(max_length=255, write_only=True)
+    phoneNumber = CharField(label='PhoneNumber', max_length=15)
+[INFO] 2025-07-24 13:31:00,239 homigo - 918531
+[DEBUG] 2025-07-24 13:31:00,241 homigo - generated:918531
+[DEBUG] 2025-07-24 13:31:00,329 homigo - Email task queued for: sidape7441@hadvar.com
+[DEBUG] 2025-07-24 13:32:24,036 homigo - generated:518513
+[DEBUG] 2025-07-24 13:32:24,082 homigo - Email task queued for: sidape7441@hadvar.com
+[INFO] 2025-07-24 13:45:39,354 homigo - 35
+[INFO] 2025-07-24 13:46:18,414 homigo - Received POST data: <QueryDict: {'category': ['26'], 'name': ['installaion'], 'rate': ['999'], 'description': ['gokjlakjdlahhahalkhdl;ashdkl kahk hhakdhf l  lahdfkjahdffjk ;ihyoehvskan']}>

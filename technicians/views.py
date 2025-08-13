@@ -1,3 +1,4 @@
+from decimal import Decimal
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, generics
@@ -13,6 +14,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
 from booking.models import Booking
 from technicians.models import TechnicianDetails
+from django.db.models import F
 logger=logging.getLogger('homigo')
 
 class ServiceCategoryListView(generics.ListAPIView):
@@ -352,7 +354,6 @@ class AcceptBookingView(APIView):
         except Exception as e:
             print(f"Category validation error: {str(e)}")
             return False
-
 class CompleteBookingView(APIView):
     permission_classes = [IsAuthenticated]
     
@@ -370,7 +371,7 @@ class CompleteBookingView(APIView):
             except Booking.DoesNotExist:
                 return Response({'error': 'Booking not found or not assigned to you'}, status=status.HTTP_404_NOT_FOUND)
             
-            # ✅ Additional category validation for completion
+            # Additional category validation for completion
             if not self.validate_category_match(booking, technician):
                 return Response({
                     'error': 'Category validation failed: Cannot complete this booking'
@@ -380,16 +381,20 @@ class CompleteBookingView(APIView):
             if booking.status != 'confirmed':
                 return Response({'error': 'Booking is not in confirmed status'}, status=status.HTTP_400_BAD_REQUEST)
             
-            # Update status to completed
-            booking.status = 'completed'
-            booking.save()
+            # Calculate 90% of the amount to add to technician's wallet
+            earnings = booking.amount * Decimal('0.9')
+            
+            # Update booking status and technician wallet
+            Booking.objects.filter(id=booking_id).update(status='completed')
+            TechnicianDetails.objects.filter(id=technician.id).update(wallet=F('wallet') + float(earnings))  # Convert to float for FloatField
             
             return Response({
                 'success': True,
                 'message': 'Booking marked as completed successfully',
                 'booking': {
                     'id': booking.id,
-                    'status': booking.status
+                    'status': 'completed',
+                    'earnings_added': float(earnings)  # Return as float for frontend
                 }
             }, status=status.HTTP_200_OK)
             
@@ -402,7 +407,7 @@ class CompleteBookingView(APIView):
     
     def validate_category_match(self, booking, technician):
         """
-        ✅ Helper method to validate category matching
+        Helper method to validate category matching
         """
         try:
             booking_category_match = booking.category.id == technician.category.id
@@ -411,7 +416,50 @@ class CompleteBookingView(APIView):
         except Exception as e:
             print(f"Category validation error: {str(e)}")
             return False
-        
 
-class WalletView(APIView):
-    
+class TechnicianWalletView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            # Check if user is a technician
+            try:
+                technician = TechnicianDetails.objects.get(user=request.user)
+            except TechnicianDetails.DoesNotExist:
+                return Response({'error': 'User is not a technician'}, status=403)
+
+            # Get current wallet balance
+            wallet_balance = float(technician.wallet)
+
+            # Fetch completed bookings details
+            bookings = Booking.objects.filter(
+                technician=technician,
+                status='completed'
+            ).select_related('user', 'service_type', 'category', 'address').order_by('-id')
+
+            booking_list = [
+                {
+                    'id': booking.id,
+                    'customer_name': f"{booking.user.firstName} {booking.user.lastName}",
+                    'service_type': booking.service_type.name,
+                    'category': booking.category.name,
+                    'amount': float(booking.amount),
+                    'earnings': float(booking.amount * Decimal('0.9')),  # Use Decimal for multiplication
+                    'booking_date': booking.booking_date.strftime('%Y-%m-%d') if booking.booking_date else None,
+                    'address': {
+                        'city': booking.address.city,
+                        'pincode': booking.address.pincode,
+                    }
+                } for booking in bookings
+            ]
+
+            return Response({
+                'success': True,
+                'wallet_balance': wallet_balance,
+                'completed_bookings': booking_list,
+                'technician_category': technician.category.name
+            }, status=200)
+
+        except Exception as e:
+            print(f"Technician Wallet Error: {str(e)}")
+            return Response({'success': False, 'error': str(e)}, status=500)

@@ -1,3 +1,4 @@
+from decimal import Decimal
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -14,6 +15,7 @@ import logging
 from django.shortcuts import get_object_or_404
 from rest_framework.parsers import MultiPartParser,FormParser
 from django.db import IntegrityError  
+from django.db.models import Sum
 # bookings/views.py
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -378,4 +380,42 @@ class UpdateBookingStatusView(APIView):
             return Response({'error': 'Booking not found'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+
+class AdminWalletView(APIView):
+    permission_classes = [IsAuthenticated,IsAdminRole]
+
+    def get(self, request):
+        try:
+            # Calculate total earnings as 10% of completed booking amounts
+            total_earnings = Booking.objects.filter(status='completed').aggregate(
+                total=Sum('amount')
+            )['total'] or Decimal('0.00')
+            admin_earnings = total_earnings * Decimal('0.1')  # 10% for admin
+
+            # Fetch completed bookings details
+            bookings = Booking.objects.filter(status='completed').select_related(
+                'user', 'service_type', 'category', 'address'
+            ).order_by('-id')
+
+            booking_list = [
+                {
+                    'id': booking.id,
+                    'customer_name': f"{booking.user.firstName} {booking.user.lastName}",
+                    'service_type': booking.service_type.name,
+                    'category': booking.category.name,
+                    'amount': float(booking.amount),
+                    'admin_earnings': float(booking.amount * Decimal('0.1')),  # 10% per booking
+                    'booking_date': booking.booking_date.strftime('%Y-%m-%d') if booking.booking_date else None,
+                    'city': booking.address.city,
+                } for booking in bookings
+            ]
+
+            return Response({
+                'success': True,
+                'admin_earnings': float(admin_earnings),
+                'total_completed_amount': float(total_earnings),
+                'completed_bookings': booking_list
+            }, status=200)
+        except Exception as e:
+            print(f"Admin Wallet Error: {str(e)}")
+            return Response({'success': False, 'error': str(e)}, status=500)

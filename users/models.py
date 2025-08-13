@@ -1,3 +1,4 @@
+from decimal import Decimal
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from cloudinary.models import CloudinaryField
@@ -32,6 +33,11 @@ class User(AbstractBaseUser):
     role = models.CharField(max_length=50, default='user')
     isVerified = models.BooleanField(default=False)
     status = models.CharField(max_length=50, default='pending')
+    wallet_balance = models.DecimalField(
+        max_digits=10,       # up to 99999999.99
+        decimal_places=2,    # 2 decimal places
+        default=Decimal('0.00')
+    )
 
     objects = UserManager()
 
