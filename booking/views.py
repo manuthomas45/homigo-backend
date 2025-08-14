@@ -143,3 +143,41 @@ class CreateBookingView(APIView):
             traceback.print_exc()
             return Response({'error': f"Unexpected error: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+
+class UserBookingsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        bookings = Booking.objects.filter(user=request.user)
+        serializer = BookingSerializer(bookings, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+class CancelBookingView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        try:
+            booking = Booking.objects.get(pk=pk, user=request.user)
+            if booking.technician is not None:
+                return Response(
+                    {"error": "Cannot cancel booking with an assigned technician"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            if booking.status in ['cancelled', 'completed']:
+                return Response(
+                    {"error": "Booking cannot be cancelled"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            booking.status = 'cancelled'
+            booking.save()
+            return Response(
+                {"message": "Booking cancelled successfully"},
+                status=status.HTTP_200_OK
+            )
+        except Booking.DoesNotExist:
+            return Response(
+                {"error": "Booking not found or you do not have permission"},
+                status=status.HTTP_404_NOT_FOUND
+            )
