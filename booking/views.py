@@ -11,6 +11,8 @@ from technicians.models import ServiceCategory
 import traceback
 import json
 from django.http import JsonResponse
+from django.db import transaction
+from decimal import Decimal
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -144,36 +146,109 @@ class CreateBookingView(APIView):
             return Response({'error': f"Unexpected error: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-
 class UserBookingsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        bookings = Booking.objects.filter(user=request.user)
-        serializer = BookingSerializer(bookings, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    
+        try:
+            # Fetch bookings for the authenticated user with related data
+            bookings = Booking.objects.filter(user=request.user).select_related(
+                'category', 'service_type', 'address', 'technician__user'
+            )
+
+            # Construct response data manually
+            bookings_data = []
+            for booking in bookings:
+                booking_data = {
+                    'id': booking.id,
+                    'category': {
+                        'name': booking.category.name if booking.category else 'N/A'
+                    },
+                    'service_type': {
+                        'name': booking.service_type.name if booking.service_type else 'N/A'
+                    },
+                    'address': {
+                        'address': booking.address.address if booking.address else 'N/A',
+                        'city': booking.address.city if booking.address else 'N/A',
+                        'state': booking.address.state if booking.address else 'N/A',
+                        'pincode': booking.address.pincode if booking.address else 'N/A',
+                        'phone_number': booking.address.phone_number if booking.address else 'N/A'
+                    },
+                    'status': booking.status or 'N/A',
+                    'amount': str(booking.amount) if booking.amount is not None else '0.00',
+                    'booking_date': booking.booking_date.strftime('%Y-%m-%d') if booking.booking_date else 'N/A',
+                    'technician': None
+                }
+                if booking.technician:
+                    booking_data['technician'] = {
+                        'user': {
+                            'firstName': booking.technician.user.firstName if booking.technician.user else 'N/A',
+                            'lastName': booking.technician.user.lastName if booking.technician.user else 'N/A',
+                            'email': booking.technician.user.email if booking.technician.user else 'N/A',
+                            'phoneNumber': booking.technician.user.phoneNumber if booking.technician.user else 'N/A'
+                        },
+                        'city': booking.technician.city if booking.technician else 'N/A',
+                        'is_verified': booking.technician.is_verified if booking.technician else False
+                    }
+                bookings_data.append(booking_data)
+
+            # Include wallet_balance in the response
+            response_data = {
+                'wallet_balance': str(request.user.wallet_balance) if request.user.wallet_balance is not None else '0.00',
+                'bookings': bookings_data
+            }
+
+            return Response(response_data, status=status.HTTP_200_OK)
+        except Exception as e:
+            print(f"User Bookings Error: {str(e)}")
+            return Response({
+                'success': False,
+                'error': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
 
 class CancelBookingView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, pk):
         try:
+            # Fetch the booking for the authenticated user
             booking = Booking.objects.get(pk=pk, user=request.user)
+            
+            # Check if booking has an assigned technician
             if booking.technician is not None:
                 return Response(
                     {"error": "Cannot cancel booking with an assigned technician"},
                     status=status.HTTP_400_BAD_REQUEST
                 )
+            
+            # Check if booking is already cancelled or completed
             if booking.status in ['cancelled', 'completed']:
                 return Response(
                     {"error": "Booking cannot be cancelled"},
                     status=status.HTTP_400_BAD_REQUEST
                 )
-            booking.status = 'cancelled'
-            booking.save()
+            
+            # Use transaction to ensure atomicity
+            with transaction.atomic():
+                # Update booking status
+                booking.status = 'cancelled'
+                booking.save()
+                
+                # Add booking amount to user's wallet balance
+                if booking.amount is not None:
+                    try:
+                        amount = Decimal(str(booking.amount))  # Ensure amount is Decimal
+                        booking.user.wallet_balance += amount
+                        booking.user.save(update_fields=['wallet_balance'])
+                    except (ValueError, TypeError):
+                        return Response(
+                            {"error": "Invalid booking amount"},
+                            status=status.HTTP_400_BAD_REQUEST
+                        )
+                
             return Response(
-                {"message": "Booking cancelled successfully"},
+                {"message": "Booking cancelled successfully and amount added to wallet"},
                 status=status.HTTP_200_OK
             )
         except Booking.DoesNotExist:
@@ -181,3 +256,49 @@ class CancelBookingView(APIView):
                 {"error": "Booking not found or you do not have permission"},
                 status=status.HTTP_404_NOT_FOUND
             )
+        except Exception as e:
+            return Response(
+                {"error": f"Failed to cancel booking: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        
+
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+from .models import Complaint, Booking
+from .serializers import ComplaintSerializer
+from django.db import transaction
+
+class SubmitComplaintView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        try:
+            with transaction.atomic():
+                booking_id = request.data.get('booking')
+                booking = Booking.objects.get(id=booking_id, user=request.user, status='completed')
+                if not booking:
+                    return Response({"error": "Invalid or incomplete booking"}, status=status.HTTP_400_BAD_REQUEST)
+                
+                data = {
+                    'booking': booking.id,
+                    'user': request.user.id,
+                    'technician': booking.technician.id if booking.technician else None,
+                    'category': booking.category.id,
+                    'service_type': booking.service_type.id,
+                    'title': request.data.get('title'),
+                    'description': request.data.get('description')
+                }
+                
+                serializer = ComplaintSerializer(data=data)
+                if serializer.is_valid():
+                    serializer.save()
+                    return Response({"message": "Complaint submitted successfully"}, status=status.HTTP_201_CREATED)
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Booking.DoesNotExist:
+            return Response({"error": "Booking not found or not completed"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

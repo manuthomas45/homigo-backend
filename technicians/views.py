@@ -164,7 +164,7 @@ class TechnicianBookingsView(APIView):
             
             bookings = []
             for booking in available_bookings_query.order_by('-id'):
-                # ✅ Additional validation check
+                #  Additional validation check
                 if booking.category.id != technician.category.id or booking.service_type.category.id != technician.category.id:
                     continue  # Skip this booking if categories don't match
                     
@@ -178,7 +178,7 @@ class TechnicianBookingsView(APIView):
                     'service_type': booking.service_type.name,
                     'category': booking.category.name,
                     'status': booking.status,
-                    'technician_category': technician.category.name,  # ✅ Add for debugging
+                    'technician_category': technician.category.name,  #  Add for debugging
                     'address': {
                         'id': booking.address.id,
                         'address': booking.address.address,
@@ -193,7 +193,7 @@ class TechnicianBookingsView(APIView):
             return Response({
                 'success': True,
                 'bookings': bookings,
-                'technician_category': technician.category.name  # ✅ Add for frontend reference
+                'technician_category': technician.category.name  #  Add for frontend reference
             }, status=status.HTTP_200_OK)
             
         except Exception as e:
