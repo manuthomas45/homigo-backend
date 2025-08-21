@@ -6,5 +6,5 @@ call ..\virtualenv\Scripts\activate
 start cmd /k "..\virtualenv\Scripts\activate && python manage.py runserver"
 start cmd /k "..\virtualenv\Scripts\activate && celery -A backend worker --loglevel=info --pool=solo"
 
-echo Both celery and server has been started in seperate terminals.
+echo Both celery and server has been started in separate terminals.
 pause
